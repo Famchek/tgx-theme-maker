@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TGX Theme Exporter</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: #0d1017;
+      --border: #1d2432;
+      --text: #c5d1de;
+      --muted: #68768a;
+      --accent: #5c85b5;
+      --accent-hover: #6e99cb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 14px;
+      font-weight: 600;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    textarea {
+      width: 100%;
+      min-height: 280px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 11px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #000000;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    button:hover { background: var(--accent-hover); }
+    button.secondary {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>TGX Theme Exporter</h1>
+    <div class="row">
+      <input id="filename" type="text" placeholder="Имя файла (например, Abyssal_Slate_AMOLED)" />
+      <button class="secondary" type="button" id="presetBtn">Загрузить Abyssal AMOLED</button>
+      <button class="secondary" type="button" id="clearBtn">Очистить</button>
+    </div>
+    <textarea id="code" placeholder="Вставь сюда код темы .tgx-theme..."></textarea>
+    <div class="actions">
+      <button type="button" id="downloadBtn">Скачать .tgx-theme</button>
+    </div>
+    <div class="swatches" id="swatches"></div>
+  </div>
+
+  <script>
+    const ABYSSAL_THEME = `name: Abyssal Slate AMOLED
+time: 1795181491
+author: tg2tgxBot
+wallpaper: F_1bwoliBFADAAAAUVAd7w75t9w
+@
+dark: 1
+lightStatusBar: 0
+wallpaperId: 0
+parentTheme: 11
+replaceShadowsWithSeparators: 1
+shadowDepth: 0.0
+wallpaperUsageId: 2
+wallpaperOverrideUnread: 0
+wallpaperOverrideDate: 0
+wallpaperOverrideButton: 0
+wallpaperOverrideMediaReply: 0
+wallpaperOverrideTime: 0
+wallpaperOverrideOverlay: 0
+#
+attachContact: #5C85B5
+attachFile: #5C85B5
+attachInlineBot: #5C85B5
+attachLocation: #5C85B5
+attachPhoto: #5C85B5
+attachText: #C5D1DE
+avatar_content: #000000
+avatarArchive: #1A2230
+avatarArchivePinned: #121721
+avatarBlue: #5C85B5
+avatarBlue_big: #5C85B5
+avatarCyan: #5C85B5
+avatarCyan_big: #5C85B5
+avatarGreen: #5C85B5
+avatarGreen_big: #5C85B5
+avatarInactive: #1A2230
+avatarInactive_big: #1A2230
+avatarOrange: #5C85B5
+avatarOrange_big: #5C85B5
+avatarPink: #5C85B5
+avatarPink_big: #5C85B5
+avatarRed: #5C85B5
+avatarRed_big: #5C85B5
+avatarSavedMessages: #5C85B5
+avatarSavedMessages_big: #5C85B5
+avatarViolet: #5C85B5
+avatarViolet_big: #5C85B5
+avatarYellow: #5C85B5
+avatarYellow_big: #5C85B5
+background: #000000
+background_icon: #68768A
+background_text: #C5D1DE
+background_textLight: #68768A
+badge: #5C85B5
+badgeFailed: #C94A4A
+badgeFailedText: #000000
+badgeMuted: #1A2230
+badgeMutedText: #68768A
+badgeText: #000000
+bubble_button: #0E131B99
+bubble_button_noWallpaper: #0E131B99
+bubble_buttonRipple: #5C85B533
+bubble_buttonRipple_noWallpaper: #5C85B533
+bubble_buttonText: #C5D1DE
+bubble_buttonText_noWallpaper: #C5D1DE
+bubble_chatSeparator: #121721
+bubble_date: #0E131B99
+bubble_date_noWallpaper: #0E131B99
+bubble_dateText: #C5D1DE
+bubble_dateText_noWallpaper: #C5D1DE
+bubble_mediaOverlay: #0E131B99
+bubble_mediaOverlayText: #C5D1DE
+bubble_mediaReply: #0E131B99
+bubble_mediaReply_noWallpaper: #0E131B99
+bubble_mediaReplyText: #C5D1DE
+bubble_mediaReplyText_noWallpaper: #C5D1DE
+bubble_mediaTime: #0E131B99
+bubble_mediaTime_noWallpaper: #0E131B99
+bubble_mediaTimeText: #C5D1DE
+bubble_mediaTimeText_noWallpaper: #C5D1DE
+bubble_messageCheckOutline: #749BC7
+bubble_messageCheckOutlineNoWallpaper: #749BC7
+bubble_messageSelection: #5C85B544
+bubble_messageSelectionNoWallpaper: #5C85B544
+bubble_overlay: #0E131B99
+bubble_overlay_noWallpaper: #0E131B99
+bubble_overlayText: #C5D1DE
+bubble_overlayText_noWallpaper: #C5D1DE
+bubble_unread: #121E2E
+bubble_unread_noWallpaper: #121E2E
+bubble_unreadText: #749BC7
+bubble_unreadText_noWallpaper: #749BC7
+bubbleIn_background: #0E131B
+bubbleIn_outline: #121721
+bubbleIn_pressed: #141B26
+bubbleIn_progress: #1A2230
+bubbleIn_separator: #121721
+bubbleIn_text: #C5D1DE
+bubbleIn_textLink: #749BC7
+bubbleIn_textLinkPressHighlight: #749BC766
+bubbleIn_time: #68768A
+bubbleOut_background: #121E2E
+bubbleOut_chatVerticalLine: #5C85B5
+bubbleOut_file: #749BC7
+bubbleOut_inlineIcon: #749BC7
+bubbleOut_inlineOutline: #5C85B5
+bubbleOut_inlineText: #749BC7
+bubbleOut_messageAuthor: #749BC7
+bubbleOut_outline: #121721
+bubbleOut_pressed: #192940
+bubbleOut_progress: #1A2230
+bubbleOut_separator: #121721
+bubbleOut_text: #C5D1DE
+bubbleOut_textLink: #85ACE0
+bubbleOut_textLinkPressHighlight: #85ACE066
+bubbleOut_ticks: #749BC7
+bubbleOut_ticksRead: #85ACE0
+bubbleOut_time: #68768A
+bubbleOut_waveformActive: #749BC7
+bubbleOut_waveformInactive: #4A5568
+chatKeyboard: #000000
+chatKeyboardButton: #0B0E14
+chatListAction: #5C85B5
+chatListIcon: #68768A
+chatListMute: #4A5568
+chatListVerify: #5C85B5
+chatSendButton: #5C85B5
+chatSeparator: #121721
+checkActive: #5C85B5
+checkContent: #000000
+circleButtonRegular: #5C85B5
+circleButtonRegularIcon: #000000
+circleButtonActive: #5C85B5
+circleButtonActiveIcon: #000000
+circleButtonChat: #0B0E14
+circleButtonChatIcon: #68768A
+circleButtonNewChannel: #5C85B5
+circleButtonNewChannelIcon: #000000
+circleButtonNewChat: #5C85B5
+circleButtonNewChatIcon: #000000
+circleButtonNewGroup: #5C85B5
+circleButtonNewGroupIcon: #000000
+circleButtonNewSecret: #5C85B5
+circleButtonNewSecretIcon: #000000
+circleButtonOverlay: #5C85B5
+circleButtonOverlayIcon: #000000
+circleButtonTheme: #5C85B5
+circleButtonThemeIcon: #000000
+controlActive: #5C85B5
+controlContent: #000000
+controlInactive: #4A5568
+drawer: #000000
+drawerText: #C5D1DE
+file: #5C85B5
+fileAttach: #5C85B5
+fileGreen: #5C85B5
+fileRed: #5C85B5
+fileYellow: #5C85B5
+filling: #000000
+fillingNegative: #C94A4A
+fillingPositive: #5C85B5
+fillingPositiveContent: #000000
+fillingPressed: #121721
+headerBackground: #000000
+headerBarCallActive: #5C85B5
+headerBarCallIncoming: #5C85B5
+headerBarCallMuted: #68768A
+headerButton: #5C85B5
+headerButtonIcon: #000000
+headerIcon: #68768A
+headerLightBackground: #000000
+headerLightIcon: #68768A
+headerLightText: #C5D1DE
+headerPickerBackground: #000000
+headerPickerText: #C5D1DE
+headerPlaceholder: #68768A
+headerRemoveBackground: #C94A4A80
+headerRemoveBackgroundHighlight: #C94A4A
+headerTabActive: #5C85B5
+headerTabActiveText: #C5D1DE
+headerTabInactiveText: #68768A80
+headerText: #C5D1DE
+icon: #68768A
+iconActive: #5C85B5
+iconLight: #68768A
+iconNegative: #C94A4A
+iconPositive: #5C85B5
+inlineContentActive: #000000
+inlineIcon: #5C85B5
+inlineOutline: #5C85B5
+inlineText: #749BC7
+inputActive: #5C85B5
+inputInactive: #121721
+inputNegative: #C94A4A
+inputPositive: #5C85B5
+introSection: #4A5568
+introSectionActive: #5C85B5
+iv_blockQuote: #68768A
+iv_blockQuoteLine: #5C85B5
+iv_caption: #68768A
+iv_header: #5C85B5
+iv_linkHighlight: #5C85B566
+iv_textLinkIvHighlight: #5C85B533
+iv_pageAuthor: #68768A
+iv_pageFooter: #68768A
+iv_pageSubtitle: #68768A
+iv_pageTitle: #C5D1DE
+iv_preBlockBackground: #0B0E14
+iv_pullQuote: #C5D1DE
+iv_separator: #121721
+iv_text: #C5D1DE
+iv_textLink: #749BC7
+iv_textLinkPressHighlight: #749BC780
+iv_textMarked: #C5D1DE
+iv_textMarkedBackground: #5C85B566
+iv_textMarkedLink: #749BC7
+iv_textMarkedLinkPressHighlight: #749BC780
+iv_textReference: #C5D1DE
+iv_textReferenceBackground: #0E131B
+iv_textReferenceBackgroundPressed: #121E2E
+iv_textReferenceOutline: #121721
+iv_textReferenceOutlinePressed: #5C85B5
+iv_textCode: #68768A
+iv_textCodeBackground: #0B0E14
+iv_textCodeBackgroundPressed: #0E131B
+ivHeader: #000000
+ivHeaderIcon: #C5D1DE
+messageAuthor: #749BC7
+messageSelection: #5C85B544
+messageSwipeBackground: #121E2E
+messageSwipeContent: #C5D1DE
+messageVerticalLine: #5C85B5
+nameBlue: #5C85B5
+nameCyan: #749BC7
+nameGreen: #5C85B5
+nameInactive: #68768A80
+nameOrange: #749BC7
+namePink: #5C85B5
+nameRed: #749BC7
+nameViolet: #5C85B5
+nameYellow: #749BC7
+online: #5C85B5
+overlayFilling: #000000
+passcode: #000000
+passcodeIcon: #5C85B5
+passcodeText: #C5D1DE
+placeholder: #121721
+playerButton: #5C85B5
+playerButtonActive: #749BC7
+playerCoverIcon: #68768A
+playerCoverPlaceholder: #0B0E14
+previewBackground: #000000BF
+profileSectionActive: #5C85B5
+profileSectionActiveContent: #749BC7
+progress: #5C85B5
+promo: #5C85B5
+promoContent: #000000
+sectionedScrollBar: #1A2230
+sectionedScrollBarActive: #5C85B5
+sectionedScrollBarActiveContent: #000000
+seekDone: #5C85B5
+seekReady: #1A2230
+separator: #121721
+shareSeparator: #121721
+sliderActive: #5C85B5
+sliderInactive: #1A2230
+snackbarUpdate: #0B0E14
+snackbarUpdateAction: #749BC7
+snackbarUpdateText: #C5D1DE
+statusBarContent: #C5D1DE
+statusBar: #0000003b
+statusBarLegacy: #000000
+statusBarLegacyContent: #C5D1DE
+text: #C5D1DE
+textLight: #68768A
+textLink: #749BC7
+textLinkPressHighlight: #5C85B533
+textNegative: #C94A4A
+textNeutral: #5C85B5
+textPlaceholder: #68768A
+textSearchQueryHighlight: #749BC7
+textSecure: #5C85B5
+textSelectionHighlight: #5C85B566
+ticks: #749BC7
+ticksRead: #85ACE0
+togglerActive: #5C85B5
+togglerActiveBackground: #5C85B580
+togglerInactive: #4A5568
+togglerInactiveBackground: #4A556880
+togglerNegative: #C94A4A
+togglerNegativeBackground: #C94A4A59
+togglerNegativeContent: #000000
+togglerPositive: #5C85B5
+togglerPositiveBackground: #5C85B559
+togglerPositiveContent: #000000
+unread: #5C85B5
+unreadText: #000000
+waveformActive: #749BC7
+waveformInactive: #4A5568
+bubbleOut_fillingActive: #5C85B526
+bubbleOut_fillingActiveContent: #749BC7
+bubbleOut_fillingPositive: #5C85B5
+bubbleOut_fillingPositive_overlay: #5C85B5
+bubbleOut_fillingPositiveContent: #000000
+bubbleOut_fillingPositiveContent_overlay: #000000
+bubbleIn_fillingActive: #5C85B526
+bubbleIn_fillingActiveContent: #749BC7
+bubbleIn_fillingPositive: #5C85B5
+bubbleIn_fillingPositive_overlay: #5C85B5
+bubbleIn_fillingPositiveContent: #000000
+bubbleIn_fillingPositiveContent_overlay: #000000
+fillingActive: #5C85B526
+fillingActiveContent: #749BC7
+bubble_chatBackground: #000000
+chatBackground: #000000`.replace(/\r\n/g, '\n');
+
+    const codeEl = document.getElementById('code');
+    const nameEl = document.getElementById('filename');
+    const swatchesEl = document.getElementById('swatches');
+
+    function sanitizeName(raw) {
+      const cleaned = (raw || 'Abyssal_Slate_AMOLED')
+        .trim()
+        .replace(/\.tgx-theme$/i, '')
+        .replace(/[\\/:*?"<>|]+/g, '_')
+        .replace(/\s+/g, '_');
+      return (cleaned || 'Abyssal_Slate_AMOLED') + '.tgx-theme';
+    }
+
+    function renderSwatches() {
+      const seen = new Set();
+      const items = [];
+      const lines = codeEl.value.split(/\r?\n/);
+      for (const line of lines) {
+        const m = line.match(/^\s*([a-zA-Z0-9_]+)\s*:\s*(#[0-9a-fA-F]{6,8})\b/);
+        if (m && !seen.has(m[2].toUpperCase())) {
+          seen.add(m[2].toUpperCase());
+          items.push({ key: m[1], hex: m[2].toUpperCase() });
+        }
+      }
+      swatchesEl.innerHTML = items.slice(0, 18).map(item => `
+        <div class="swatch" title="${item.key}: ${item.hex}">
+          <span class="dot" style="background:${item.hex}"></span>
+          <span>${item.hex}</span>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('presetBtn').addEventListener('click', () => {
+      codeEl.value = ABYSSAL_THEME;
+      nameEl.value = 'Abyssal_Slate_AMOLED';
+      renderSwatches();
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      codeEl.value = '';
+      renderSwatches();
+    });
+
+    codeEl.addEventListener('input', renderSwatches);
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const normalized = codeEl.value.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+      if (!normalized.trim()) return;
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(normalized);
+      const blob = new Blob([bytes], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = sanitizeName(nameEl.value);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+
+    codeEl.value = ABYSSAL_THEME;
+    nameEl.value = 'Abyssal_Slate_AMOLED';
+    renderSwatches();
+  </script>
+</body>
+</html>
