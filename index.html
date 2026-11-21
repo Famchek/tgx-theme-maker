@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TGX AMOLED Combine</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: #0c1017;
+      --border: #1c2432;
+      --text: #dce4ee;
+      --muted: #8a99ad;
+      --accent: #5c85b5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .wrap { max-width: 780px; margin: 0 auto; }
+    h1 { font-size: 1.15rem; margin: 0 0 12px; font-weight: 600; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .hidden { display: none; }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .preset-btn {
+      padding: 7px 11px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: #06080d;
+      color: var(--text);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+      gap: 10px;
+    }
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .color-row { display: flex; gap: 6px; align-items: center; }
+    input[type="color"] {
+      width: 38px;
+      height: 36px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #000;
+      cursor: pointer;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: #000;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+    }
+    textarea { min-height: 210px; resize: vertical; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 0.88rem;
+      color: var(--text);
+    }
+    .btn {
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.94rem;
+      cursor: pointer;
+    }
+    .btn.secondary {
+      background: #121822;
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .btn.full { width: 100%; }
+    .status { font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
+
+    /* Live Preview */
+    .preview {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      font-size: 0.86rem;
+    }
+    .pv-head {
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      border-bottom: 1px solid transparent;
+    }
+    .pv-chatlist { padding: 8px 12px; display: flex; align-items: center; gap: 10px; }
+    .pv-ava {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .pv-meta { flex: 1; min-width: 0; }
+    .pv-title-row { display: flex; justify-content: space-between; }
+    .pv-badges { display: flex; gap: 6px; margin-top: 3px; justify-content: flex-end; }
+    .pv-badge {
+      padding: 1px 7px; border-radius: 10px; font-size: 0.74rem; font-weight: 700;
+    }
+    .pv-room { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .pv-b {
+      max-width: 82%; padding: 8px 10px; border-radius: 10px; border: 1px solid transparent;
+    }
+    .pv-b.in { align-self: flex-start; }
+    .pv-b.out { align-self: flex-end; }
+    .pv-time { font-size: 0.72rem; margin-top: 3px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>TGX AMOLED Combine</h1>
+
+    <div class="tabs">
+      <button class="tab active" id="tabBuilder" type="button">Конструктор</button>
+      <button class="tab" id="tabText" type="button">Из текста / файла</button>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="field">
+          <label>Название темы</label>
+          <input type="text" id="themeName" value="Abyssal Slate AMOLED" />
+        </div>
+        <div class="field">
+          <label>Автор</label>
+          <input type="text" id="themeAuthor" value="Famchek" />
+        </div>
+      </div>
+      <label class="check-row">
+        <input type="checkbox" id="noWallpaper" checked />
+        Чистый чёрный фон чата (отключить картинки обоев)
+      </label>
+    </div>
+
+    <!-- BUILDER MODE -->
+    <div id="panelBuilder">
+      <div class="card">
+        <div class="presets">
+          <button class="preset-btn" data-preset="slate" type="button">Slate Blue (глаза не устают)</button>
+          <button class="preset-btn" data-preset="ice" type="button">Cold Ice</button>
+          <button class="preset-btn" data-preset="teal" type="button">Deep Teal</button>
+          <button class="preset-btn" data-preset="mono" type="button">Monochrome</button>
+          <button class="preset-btn" data-preset="amber" type="button">Night Amber</button>
+        </div>
+
+        <div class="grid">
+          <div class="field"><label>Фон (AMOLED)</label><div class="color-row"><input type="color" id="c_bg" /><input type="text" id="t_bg" /></div></div>
+          <div class="field"><label>Основной текст</label><div class="color-row"><input type="color" id="c_text" /><input type="text" id="t_text" /></div></div>
+          <div class="field"><label>Вторичный текст</label><div class="color-row"><input type="color" id="c_muted" /><input type="text" id="t_muted" /></div></div>
+          <div class="field"><label>Главный акцент</label><div class="color-row"><input type="color" id="c_accent" /><input type="text" id="t_accent" /></div></div>
+          <div class="field"><label>Ссылки и галочки</label><div class="color-row"><input type="color" id="c_link" /><input type="text" id="t_link" /></div></div>
+          <div class="field"><label>Входящий пузырь</label><div class="color-row"><input type="color" id="c_in" /><input type="text" id="t_in" /></div></div>
+          <div class="field"><label>Исходящий пузырь</label><div class="color-row"><input type="color" id="c_out" /><input type="text" id="t_out" /></div></div>
+          <div class="field"><label>Разделители</label><div class="color-row"><input type="color" id="c_sep" /><input type="text" id="t_sep" /></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="preview" id="preview">
+          <div class="pv-head" id="pvHead">
+            <span>ЧАТЫ</span>
+            <span id="pvHeadMuted">ЗВОНКИ</span>
+          </div>
+          <div class="pv-chatlist" id="pvRow">
+            <div class="pv-ava" id="pvAva">А</div>
+            <div class="pv-meta">
+              <div class="pv-title-row">
+                <strong id="pvTitle">Избранное</strong>
+                <span id="pvDate" style="font-size:0.75rem">20:53</span>
+              </div>
+              <div class="pv-title-row">
+                <span id="pvSub" style="font-size:0.8rem">Привет, проверка читаемости текста</span>
+                <div class="pv-badges">
+                  <span class="pv-badge" id="pvBadgeMuted">44</span>
+                  <span class="pv-badge" id="pvBadgeActive">2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="pv-room" id="pvRoom">
+            <div class="pv-b in" id="pvIn">
+              <div>Входящее сообщение и <span id="pvLinkIn" style="text-decoration:underline">ссылка</span></div>
+              <div class="pv-time" id="pvTimeIn">20:54</div>
+            </div>
+            <div class="pv-b out" id="pvOut">
+              <div>Исходящее сообщение и <span id="pvLinkOut" style="text-decoration:underline">ссылка</span></div>
+              <div class="pv-time" id="pvTimeOut">20:55 ✓✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEXT / FILE MODE -->
+    <div id="panelText" class="hidden">
+      <div class="card">
+        <div class="field" style="margin-bottom:10px">
+          <label>Загрузить готовый .tgx-theme (необязательно):</label>
+          <input type="file" id="fileInput" accept=".tgx-theme,*/*" />
+        </div>
+        <div class="field">
+          <label>Или вставь сюда ЛЮБОЙ текст темы (полный .tgx-theme, список key: #HEX или просто набор HEX-кодов):</label>
+          <textarea id="rawInput" placeholder="Вставь сюда любой код темы или цвета..."></textarea>
+        </div>
+        <div class="row">
+          <button class="btn secondary" id="parseToBuilder" type="button">Подтянуть цвета в конструктор</button>
+          <button class="btn secondary" id="fillCurrent" type="button">Показать готовый код из конструктора</button>
+          <button class="btn secondary" id="clearRaw" type="button">Очистить</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="btn full" id="downloadBtn" type="button">Скачать рабочий .tgx-theme</button>
+      <div class="row">
+        <button class="btn secondary" id="copyBtn" type="button" style="flex:1">Скопировать готовый код</button>
+      </div>
+      <div class="status" id="status">Готов к сборке. Формат с заголовком ! / @ / # гарантирован.</div>
+    </div>
+  </div>
+
+  <script>
+    const PRESETS = {
+      slate: { name: 'Abyssal Slate AMOLED', bg: '#000000', text: '#DCE4EE', muted: '#8A99AD', accent: '#5C85B5', link: '#82ACE0', inBg: '#10151E', outBg: '#16263B', sep: '#161E2B' },
+      ice:   { name: 'Cold Ice AMOLED',      bg: '#000000', text: '#E2E9F2', muted: '#8C9CB0', accent: '#6B9AC4', link: '#8EC0EB', inBg: '#0E141C', outBg: '#152A3D', sep: '#151F2B' },
+      teal:  { name: 'Deep Teal AMOLED',     bg: '#000000', text: '#DCE8E6', muted: '#829996', accent: '#3B9C92', link: '#66BFB6', inBg: '#0E1717', outBg: '#122B29', sep: '#152423' },
+      mono:  { name: 'Pure Mono AMOLED',     bg: '#000000', text: '#E0E0E0', muted: '#8E8E8E', accent: '#A8B3C2', link: '#C7D1DE', inBg: '#121212', outBg: '#1F2329', sep: '#1C1C1C' },
+      amber: { name: 'Night Amber AMOLED',   bg: '#000000', text: '#EAE2D6', muted: '#998E7E', accent: '#C48E4D', link: '#DBA765', inBg: '#14110E', outBg: '#261D13', sep: '#211B14' }
+    };
+
+    const KEYS = ['bg', 'text', 'muted', 'accent', 'link', 'in', 'out', 'sep'];
+    let activeTab = 'builder';
+    let loadedWallpaper = '';
+
+    const $ = id => document.getElementById(id);
+
+    function normHex(val, fallback) {
+      if (!val) return fallback;
+      let s = val.trim().replace(/^#/, '');
+      if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(c => c + c).join('');
+      if (/^[0-9a-fA-F]{6}$/.test(s)) return '#' + s.toUpperCase();
+      if (/^[0-9a-fA-F]{8}$/.test(s)) return '#' + s.slice(0, 6).toUpperCase();
+      return fallback;
+    }
+
+    function hexToRgb(hex) {
+      const h = normHex(hex, '#000000').slice(1);
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    function mixHex(h1, h2, t) {
+      const a = hexToRgb(h1), b = hexToRgb(h2);
+      return rgbToHex(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
+    }
+
+    function luminance(hex) {
+      const [r, g, b] = hexToRgb(hex).map(v => {
+        const x = v / 255;
+        return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    function contrastText(bgHex) {
+      return luminance(bgHex) > 0.28 ? '#000000' : '#F2F6FA';
+    }
+
+    function getCfg() {
+      return {
+        name: $('themeName').value.trim() || 'Abyssal Slate AMOLED',
+        author: $('themeAuthor').value.trim() || 'Famchek',
+        noWallpaper: $('noWallpaper').checked,
+        bg: normHex($('t_bg').value, '#000000'),
+        text: normHex($('t_text').value, '#DCE4EE'),
+        muted: normHex($('t_muted').value, '#8A99AD'),
+        accent: normHex($('t_accent').value, '#5C85B5'),
+        link: normHex($('t_link').value, '#82ACE0'),
+        inBg: normHex($('t_in').value, '#10151E'),
+        outBg: normHex($('t_out').value, '#16263B'),
+        sep: normHex($('t_sep').value, '#161E2B')
+      };
+    }
+
+    function setCfg(p) {
+      if (p.name) $('themeName').value = p.name;
+      const map = { bg: p.bg, text: p.text, muted: p.muted, accent: p.accent, link: p.link, in: p.inBg, out: p.outBg, sep: p.sep };
+      for (const k of KEYS) {
+        if (map[k]) {
+          const h = normHex(map[k], '#000000');
+          $('c_' + k).value = h;
+          $('t_' + k).value = h;
+        }
+      }
+      updatePreview();
+    }
+
+    function buildColorTable(c) {
+      const onAccent = contrastText(c.accent);
+      const mutedBg = mixHex(c.bg, c.muted, 0.24);
+      const mutedTxt = mixHex(c.text, c.muted, 0.2);
+      const inPressed = mixHex(c.inBg, c.text, 0.08);
+      const outPressed = mixHex(c.outBg, c.text, 0.1);
+      const outText = mixHex(c.text, '#FFFFFF', 0.15);
+      const outTime = mixHex(c.muted, c.text, 0.15);
+      const outLink = mixHex(c.link, '#FFFFFF', 0.18);
+      const surface = mixHex(c.bg, c.inBg, 0.75);
+      const pillBg = mixHex(c.bg, c.inBg, 0.9) + 'CC';
+      const avaBase = mixHex(c.bg, c.accent, 0.32);
+      const neg = '#D95353';
+      const pos = '#58B372';
+
+      return {
+        attachContact: '#C9A24B',
+        attachFile: c.accent,
+        attachInlineBot: '#C95E5E',
+        attachLocation: pos,
+        attachPhoto: c.link,
+        attachText: c.text,
+        avatar_content: '#EBF2FA',
+        avatarArchive: mutedBg,
+        avatarArchivePinned: mixHex(c.bg, c.muted, 0.34),
+        avatarBlue: avaBase,
+        avatarBlue_big: avaBase,
+        avatarCyan: mixHex(c.bg, '#4A9999', 0.35),
+        avatarCyan_big: mixHex(c.bg, '#4A9999', 0.35),
+        avatarGreen: mixHex(c.bg, '#559966', 0.35),
+        avatarGreen_big: mixHex(c.bg, '#559966', 0.35),
+        avatarInactive: mutedBg,
+        avatarInactive_big: mutedBg,
+        avatarOrange: mixHex(c.bg, '#B87B4B', 0.35),
+        avatarOrange_big: mixHex(c.bg, '#B87B4B', 0.35),
+        avatarPink: mixHex(c.bg, '#A85D7A', 0.35),
+        avatarPink_big: mixHex(c.bg, '#A85D7A', 0.35),
+        avatarRed: mixHex(c.bg, '#A8555E', 0.35),
+        avatarRed_big: mixHex(c.bg, '#A8555E', 0.35),
+        avatarSavedMessages: mixHex(c.bg, c.accent, 0.45),
+        avatarSavedMessages_big: mixHex(c.bg, c.accent, 0.45),
+        avatarViolet: mixHex(c.bg, '#7D66A8', 0.35),
+        avatarViolet_big: mixHex(c.bg, '#7D66A8', 0.35),
+        avatarYellow: mixHex(c.bg, '#B89B4B', 0.35),
+        avatarYellow_big: mixHex(c.bg, '#B89B4B', 0.35),
+        background: c.bg,
+        background_icon: c.muted,
+        background_text: c.text,
+        background_textLight: c.muted,
+        badge: c.accent,
+        badgeFailed: neg,
+        badgeFailedText: '#FFFFFF',
+        badgeMuted: mutedBg,
+        badgeMutedText: mutedTxt,
+        badgeText: onAccent,
+        bubble_button: pillBg,
+        bubble_button_noWallpaper: pillBg,
+        bubble_buttonRipple: c.accent + '33',
+        bubble_buttonRipple_noWallpaper: c.accent + '33',
+        bubble_buttonText: c.text,
+        bubble_buttonText_noWallpaper: c.text,
+        bubble_chatSeparator: c.sep,
+        bubble_date: pillBg,
+        bubble_date_noWallpaper: pillBg,
+        bubble_dateText: c.text,
+        bubble_dateText_noWallpaper: c.text,
+        bubble_mediaOverlay: pillBg,
+        bubble_mediaOverlayText: c.text,
+        bubble_mediaReply: pillBg,
+        bubble_mediaReply_noWallpaper: pillBg,
+        bubble_mediaReplyText: c.text,
+        bubble_mediaReplyText_noWallpaper: c.text,
+        bubble_mediaTime: pillBg,
+        bubble_mediaTime_noWallpaper: pillBg,
+        bubble_mediaTimeText: c.text,
+        bubble_mediaTimeText_noWallpaper: c.text,
+        bubble_messageCheckOutline: c.link,
+        bubble_messageCheckOutlineNoWallpaper: c.link,
+        bubble_messageSelection: c.accent + '44',
+        bubble_messageSelectionNoWallpaper: c.accent + '44',
+        bubble_overlay: pillBg,
+        bubble_overlay_noWallpaper: pillBg,
+        bubble_overlayText: c.text,
+        bubble_overlayText_noWallpaper: c.text,
+        bubble_unread: c.inBg,
+        bubble_unread_noWallpaper: c.inBg,
+        bubble_unreadText: c.link,
+        bubble_unreadText_noWallpaper: c.link,
+        bubbleIn_background: c.inBg,
+        bubbleIn_outline: c.sep,
+        bubbleIn_pressed: inPressed,
+        bubbleIn_progress: mutedBg,
+        bubbleIn_separator: c.sep,
+        bubbleIn_text: c.text,
+        bubbleIn_textLink: c.link,
+        bubbleIn_textLinkPressHighlight: c.link + '55',
+        bubbleIn_time: c.muted,
+        bubbleOut_background: c.outBg,
+        bubbleOut_chatVerticalLine: c.accent,
+        bubbleOut_file: c.link,
+        bubbleOut_inlineIcon: c.link,
+        bubbleOut_inlineOutline: c.accent,
+        bubbleOut_inlineText: c.link,
+        bubbleOut_messageAuthor: outLink,
+        bubbleOut_outline: mixHex(c.outBg, c.accent, 0.2),
+        bubbleOut_pressed: outPressed,
+        bubbleOut_progress: mutedBg,
+        bubbleOut_separator: mixHex(c.outBg, c.accent, 0.25),
+        bubbleOut_text: outText,
+        bubbleOut_textLink: outLink,
+        bubbleOut_textLinkPressHighlight: outLink + '55',
+        bubbleOut_ticks: c.link,
+        bubbleOut_ticksRead: outLink,
+        bubbleOut_time: outTime,
+        bubbleOut_waveformActive: outLink,
+        bubbleOut_waveformInactive: mixHex(c.outBg, c.muted, 0.5),
+        chatKeyboard: c.bg,
+        chatKeyboardButton: c.inBg,
+        chatListAction: c.accent,
+        chatListIcon: c.muted,
+        chatListMute: mixHex(c.bg, c.muted, 0.65),
+        chatListVerify: c.accent,
+        chatSendButton: c.accent,
+        chatSeparator: c.sep,
+        checkActive: c.accent,
+        checkContent: onAccent,
+        circleButtonRegular: c.accent,
+        circleButtonRegularIcon: onAccent,
+        circleButtonActive: c.accent,
+        circleButtonActiveIcon: onAccent,
+        circleButtonChat: c.inBg,
+        circleButtonChatIcon: c.muted,
+        circleButtonNewChannel: c.accent,
+        circleButtonNewChannelIcon: onAccent,
+        circleButtonNewChat: c.accent,
+        circleButtonNewChatIcon: onAccent,
+        circleButtonNewGroup: c.accent,
+        circleButtonNewGroupIcon: onAccent,
+        circleButtonNewSecret: c.accent,
+        circleButtonNewSecretIcon: onAccent,
+        circleButtonOverlay: c.accent,
+        circleButtonOverlayIcon: onAccent,
+        circleButtonTheme: c.accent,
+        circleButtonThemeIcon: onAccent,
+        controlActive: c.accent,
+        controlContent: onAccent,
+        controlInactive: mixHex(c.bg, c.muted, 0.55),
+        drawer: c.bg,
+        drawerText: c.text,
+        file: c.accent,
+        fileAttach: c.accent,
+        fileGreen: pos,
+        fileRed: neg,
+        fileYellow: '#C9A24B',
+        filling: c.bg,
+        fillingNegative: neg,
+        fillingPositive: c.accent,
+        fillingPositiveContent: onAccent,
+        fillingPressed: c.sep,
+        headerBackground: c.bg,
+        headerBarCallActive: c.accent,
+        headerBarCallIncoming: c.accent,
+        headerBarCallMuted: c.muted,
+        headerButton: c.accent,
+        headerButtonIcon: onAccent,
+        headerIcon: c.muted,
+        headerLightBackground: c.bg,
+        headerLightIcon: c.muted,
+        headerLightText: c.text,
+        headerPickerBackground: c.bg,
+        headerPickerText: c.text,
+        headerPlaceholder: c.muted,
+        headerRemoveBackground: neg + '80',
+        headerRemoveBackgroundHighlight: neg,
+        headerTabActive: c.accent,
+        headerTabActiveText: c.text,
+        headerTabInactiveText: c.muted,
+        headerText: c.text,
+        icon: c.muted,
+        iconActive: c.accent,
+        iconLight: c.muted,
+        iconNegative: neg,
+        iconPositive: pos,
+        inlineContentActive: onAccent,
+        inlineIcon: c.accent,
+        inlineOutline: c.accent,
+        inlineText: c.link,
+        inputActive: c.accent,
+        inputInactive: c.sep,
+        inputNegative: neg,
+        inputPositive: pos,
+        introSection: mutedBg,
+        introSectionActive: c.accent,
+        iv_blockQuote: c.muted,
+        iv_blockQuoteLine: c.accent,
+        iv_caption: c.muted,
+        iv_header: c.accent,
+        iv_linkHighlight: c.accent + '55',
+        iv_textLinkIvHighlight: c.accent + '33',
+        iv_pageAuthor: c.muted,
+        iv_pageFooter: c.muted,
+        iv_pageSubtitle: c.muted,
+        iv_pageTitle: c.text,
+        iv_preBlockBackground: surface,
+        iv_pullQuote: c.text,
+        iv_separator: c.sep,
+        iv_text: c.text,
+        iv_textLink: c.link,
+        iv_textLinkPressHighlight: c.link + '66',
+        iv_textMarked: c.text,
+        iv_textMarkedBackground: c.accent + '55',
+        iv_textMarkedLink: c.link,
+        iv_textMarkedLinkPressHighlight: c.link + '66',
+        iv_textReference: c.text,
+        iv_textReferenceBackground: c.inBg,
+        iv_textReferenceBackgroundPressed: c.outBg,
+        iv_textReferenceOutline: c.sep,
+        iv_textReferenceOutlinePressed: c.accent,
+        iv_textCode: c.muted,
+        iv_textCodeBackground: surface,
+        iv_textCodeBackgroundPressed: c.inBg,
+        ivHeader: c.bg,
+        ivHeaderIcon: c.text,
+        messageAuthor: c.link,
+        messageSelection: c.accent + '44',
+        messageSwipeBackground: c.outBg,
+        messageSwipeContent: c.text,
+        messageVerticalLine: c.accent,
+        nameBlue: '#76A9E0',
+        nameCyan: '#64BFBF',
+        nameGreen: '#75C285',
+        nameInactive: c.muted,
+        nameOrange: '#D99B6C',
+        namePink: '#D483A6',
+        nameRed: '#D97A84',
+        nameViolet: '#A88EE0',
+        nameYellow: '#D9BE6C',
+        online: pos,
+        overlayFilling: surface,
+        passcode: c.bg,
+        passcodeIcon: c.accent,
+        passcodeText: c.text,
+        placeholder: c.sep,
+        playerButton: c.accent,
+        playerButtonActive: c.link,
+        playerCoverIcon: c.muted,
+        playerCoverPlaceholder: surface,
+        previewBackground: '#000000BF',
+        profileSectionActive: c.accent,
+        profileSectionActiveContent: c.link,
+        progress: c.accent,
+        promo: c.accent,
+        promoContent: onAccent,
+        sectionedScrollBar: mutedBg,
+        sectionedScrollBarActive: c.accent,
+        sectionedScrollBarActiveContent: onAccent,
+        seekDone: c.accent,
+        seekReady: mutedBg,
+        separator: c.sep,
+        shareSeparator: c.sep,
+        sliderActive: c.accent,
+        sliderInactive: mutedBg,
+        snackbarUpdate: c.inBg,
+        snackbarUpdateAction: c.link,
+        snackbarUpdateText: c.text,
+        statusBarContent: c.text,
+        statusBar: '#00000000',
+        statusBarLegacy: c.bg,
+        statusBarLegacyContent: c.text,
+        text: c.text,
+        textLight: c.muted,
+        textLink: c.link,
+        textLinkPressHighlight: c.accent + '33',
+        textNegative: neg,
+        textNeutral: c.accent,
+        textPlaceholder: mixHex(c.bg, c.muted, 0.78),
+        textSearchQueryHighlight: c.link,
+        textSecure: pos,
+        textSelectionHighlight: c.accent + '66',
+        ticks: c.link,
+        ticksRead: outLink,
+        togglerActive: c.accent,
+        togglerActiveBackground: c.accent + '80',
+        togglerInactive: mixHex(c.bg, c.muted, 0.6),
+        togglerInactiveBackground: mixHex(c.bg, c.muted, 0.6) + '80',
+        togglerNegative: neg,
+        togglerNegativeBackground: neg + '59',
+        togglerNegativeContent: '#FFFFFF',
+        togglerPositive: c.accent,
+        togglerPositiveBackground: c.accent + '59',
+        togglerPositiveContent: onAccent,
+        unread: c.inBg,
+        unreadText: c.link,
+        waveformActive: c.link,
+        waveformInactive: mixHex(c.bg, c.muted, 0.55),
+        bubbleOut_fillingActive: c.accent + '26',
+        bubbleOut_fillingActiveContent: outLink,
+        bubbleOut_fillingPositive: c.accent,
+        bubbleOut_fillingPositive_overlay: c.accent,
+        bubbleOut_fillingPositiveContent: onAccent,
+        bubbleOut_fillingPositiveContent_overlay: onAccent,
+        bubbleIn_fillingActive: c.accent + '26',
+        bubbleIn_fillingActiveContent: c.link,
+        bubbleIn_fillingPositive: c.accent,
+        bubbleIn_fillingPositive_overlay: c.accent,
+        bubbleIn_fillingPositiveContent: onAccent,
+        bubbleIn_fillingPositiveContent_overlay: onAccent,
+        fillingActive: c.accent + '26',
+        fillingActiveContent: c.link,
+        bubble_chatBackground: c.bg,
+        chatBackground: c.bg
+      };
+    }
+
+    function serializeTheme(cfg, overrides = {}, extraProps = {}) {
+      const colors = { ...buildColorTable(cfg), ...overrides };
+      const useWall = !cfg.noWallpaper && loadedWallpaper && !loadedWallpaper.startsWith('#');
+      const props = {
+        dark: 1,
+        lightStatusBar: 0,
+        wallpaperId: 0,
+        parentTheme: 11,
+        replaceShadowsWithSeparators: 1,
+        shadowDepth: '0.0',
+        wallpaperUsageId: useWall ? 2 : 0,
+        wallpaperOverrideUnread: 0,
+        wallpaperOverrideDate: 0,
+        wallpaperOverrideButton: 0,
+        wallpaperOverrideMediaReply: 0,
+        wallpaperOverrideTime: 0,
+        wallpaperOverrideOverlay: 0,
+        ...extraProps
+      };
+      if (cfg.noWallpaper) {
+        props.wallpaperId = 0;
+        props.wallpaperUsageId = 0;
+      }
+
+      const lines = [
+        '!',
+        `name: ${cfg.name}`,
+        `time: ${Math.floor(Date.now() / 1000)}`,
+        `author: ${cfg.author}`
+      ];
+      if (useWall) lines.push(`wallpaper: ${loadedWallpaper}`);
+      lines.push('@');
+      for (const [k, v] of Object.entries(props)) lines.push(`${k}: ${v}`);
+      lines.push('#');
+      for (const [k, v] of Object.entries(colors)) lines.push(`${k}: ${v}`);
+      return lines.join('\n') + '\n';
+    }
+
+    function parseRawText(raw) {
+      const text = (raw || '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+      const cfg = getCfg();
+      const baseKeys = buildColorTable(cfg);
+      const exactOverrides = {};
+      const aliasRole = {};
+      const extraProps = {};
+      let foundPairs = 0;
+
+      const nameM = text.match(/^!?name:\s*(.+)$/m);
+      if (nameM && nameM[1].trim()) cfg.name = nameM[1].trim();
+      const authM = text.match(/^!?author:\s*(.+)$/m);
+      if (authM && authM[1].trim()) cfg.author = authM[1].trim();
+      const wallM = text.match(/^!?wallpaper:\s*([^\s#]+)$/m);
+      if (wallM && wallM[1]) loadedWallpaper = wallM[1].trim();
+
+      const aliasMap = {
+        background: 'bg', chat_list_background: 'bg', filling: 'bg', header: 'bg', headerBackground: 'bg',
+        text: 'text', chat_list_title: 'text', header_text: 'text',
+        text_secondary: 'muted', textLight: 'muted', chat_list_message: 'muted', icon: 'muted',
+        accent: 'accent', icon_active: 'accent', header_accent: 'accent', badge: 'accent', controlActive: 'accent',
+        message_in_link: 'link', textLink: 'link', bubbleIn_textLink: 'link',
+        message_in_background: 'inBg', bubbleIn_background: 'inBg',
+        message_out_background: 'outBg', bubbleOut_background: 'outBg',
+        divider: 'sep', separator: 'sep', chatSeparator: 'sep'
+      };
+
+      for (const line of text.split('\n')) {
+        const mColor = line.match(/^\s*([a-zA-Z0-9_]+)\s*:\s*(#[0-9a-fA-F]{3,8})\b/);
+        if (mColor) {
+          foundPairs++;
+          const [, k, v] = mColor;
+          const clean = v.length === 9 ? v.toUpperCase() : normHex(v, '#000000');
+          if (Object.prototype.hasOwnProperty.call(baseKeys, k)) {
+            exactOverrides[k] = clean;
+          }
+          if (aliasMap[k] && !aliasRole[aliasMap[k]]) {
+            aliasRole[aliasMap[k]] = normHex(v, cfg[aliasMap[k]]);
+          }
+          continue;
+        }
+        const mProp = line.match(/^\s*(dark|lightStatusBar|replaceShadowsWithSeparators|shadowDepth)\s*:\s*([0-9.]+)\s*$/);
+        if (mProp) extraProps[mProp[1]] = mProp[2];
+      }
+
+      if (foundPairs === 0) {
+        const hexes = [...new Set((text.match(/#[0-9a-fA-F]{6}\b/g) || []).map(h => h.toUpperCase()))];
+        if (hexes.length >= 2) {
+          const sorted = [...hexes].sort((a, b) => luminance(a) - luminance(b));
+          aliasRole.bg = sorted[0];
+          aliasRole.text = sorted[sorted.length - 1];
+          const mid = sorted.slice(1, -1);
+          if (mid.length) aliasRole.accent = mid[Math.floor(mid.length / 2)];
+        }
+      }
+
+      Object.assign(cfg, aliasRole);
+      if (cfg.noWallpaper) {
+        exactOverrides.chatBackground = cfg.bg;
+        exactOverrides.bubble_chatBackground = cfg.bg;
+      }
+      return { cfg, exactOverrides, extraProps, foundPairs };
+    }
+
+    function updatePreview() {
+      const c = getCfg();
+      const t = buildColorTable(c);
+      $('preview').style.background = t.background;
+      $('pvHead').style.background = t.headerBackground;
+      $('pvHead').style.color = t.headerTabActiveText;
+      $('pvHead').style.borderBottomColor = t.separator;
+      $('pvHeadMuted').style.color = t.headerTabInactiveText;
+      $('pvRow').style.background = t.filling;
+      $('pvRow').style.borderBottom = `1px solid ${t.separator}`;
+      $('pvAva').style.background = t.avatarSavedMessages;
+      $('pvAva').style.color = t.avatar_content;
+      $('pvTitle').style.color = t.text;
+      $('pvDate').style.color = t.textLight;
+      $('pvSub').style.color = t.textLight;
+      $('pvBadgeMuted').style.background = t.badgeMuted;
+      $('pvBadgeMuted').style.color = t.badgeMutedText;
+      $('pvBadgeActive').style.background = t.badge;
+      $('pvBadgeActive').style.color = t.badgeText;
+      $('pvRoom').style.background = t.chatBackground;
+      $('pvIn').style.background = t.bubbleIn_background;
+      $('pvIn').style.color = t.bubbleIn_text;
+      $('pvIn').style.borderColor = t.bubbleIn_outline;
+      $('pvLinkIn').style.color = t.bubbleIn_textLink;
+      $('pvTimeIn').style.color = t.bubbleIn_time;
+      $('pvOut').style.background = t.bubbleOut_background;
+      $('pvOut').style.color = t.bubbleOut_text;
+      $('pvOut').style.borderColor = t.bubbleOut_outline;
+      $('pvLinkOut').style.color = t.bubbleOut_textLink;
+      $('pvTimeOut').style.color = t.bubbleOut_time;
+    }
+
+    function generateFinalOutput() {
+      if (activeTab === 'text' && $('rawInput').value.trim()) {
+        const parsed = parseRawText($('rawInput').value);
+        return {
+          name: parsed.cfg.name,
+          content: serializeTheme(parsed.cfg, parsed.exactOverrides, parsed.extraProps)
+        };
+      }
+      const cfg = getCfg();
+      return { name: cfg.name, content: serializeTheme(cfg) };
+    }
+
+    function safeFileName(name) {
+      return (name || 'AMOLED_Theme').trim().replace(/\.tgx-theme$/i, '').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_') + '.tgx-theme';
+    }
+
+    // Bind color inputs
+    for (const k of KEYS) {
+      $('c_' + k).addEventListener('input', e => {
+        $('t_' + k).value = e.target.value.toUpperCase();
+        updatePreview();
+      });
+      $('t_' + k).addEventListener('input', e => {
+        const h = normHex(e.target.value, null);
+        if (h) {
+          $('c_' + k).value = h;
+          updatePreview();
+        }
+      });
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setCfg(PRESETS[btn.dataset.preset]);
+        $('status').textContent = `Выбран пресет: ${PRESETS[btn.dataset.preset].name}`;
+      });
+    });
+
+    $('tabBuilder').addEventListener('click', () => {
+      activeTab = 'builder';
+      $('tabBuilder').classList.add('active');
+      $('tabText').classList.remove('active');
+      $('panelBuilder').classList.remove('hidden');
+      $('panelText').classList.add('hidden');
+    });
+
+    $('tabText').addEventListener('click', () => {
+      activeTab = 'text';
+      $('tabText').classList.add('active');
+      $('tabBuilder').classList.remove('active');
+      $('panelText').classList.remove('hidden');
+      $('panelBuilder').classList.add('hidden');
+    });
+
+    $('fileInput').addEventListener('change', async e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      $('rawInput').value = await f.text();
+      $('status').textContent = `Загружен файл ${f.name}. Жми "Скачать рабочий .tgx-theme" или подтяни цвета в конструктор.`;
+    });
+
+    $('parseToBuilder').addEventListener('click', () => {
+      const parsed = parseRawText($('rawInput').value);
+      setCfg(parsed.cfg);
+      $('tabBuilder').click();
+      $('status').textContent = `Цвета из текста перенесены в конструктор (найдено пар: ${parsed.foundPairs}).`;
+    });
+
+    $('fillCurrent').addEventListener('click', () => {
+      $('rawInput').value = serializeTheme(getCfg());
+      $('status').textContent = 'Текущий код конструктора вставлен в поле.';
+    });
+
+    $('clearRaw').addEventListener('click', () => {
+      $('rawInput').value = '';
+      loadedWallpaper = '';
+    });
+
+    $('downloadBtn').addEventListener('click', () => {
+      const { name, content } = generateFinalOutput();
+      const bytes = new TextEncoder().encode(content);
+      const blob = new Blob([bytes], { type: 'application/x-tgx-theme' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = safeFileName(name);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      $('status').textContent = `Скачан ${safeFileName(name)} (${bytes.length} байт). Кидай в Избранное и применяй.`;
+    });
+
+    $('copyBtn').addEventListener('click', async () => {
+      const { content } = generateFinalOutput();
+      try {
+        await navigator.clipboard.writeText(content);
+        $('status').textContent = 'Готовый .tgx-theme код скопирован в буфер.';
+      } catch {
+        $('rawInput').value = content;
+        $('tabText').click();
+        $('status').textContent = 'Скопируй код из текстового поля.';
+      }
+    });
+
+    setCfg(PRESETS.slate);
+  </script>
+</body>
+</html>
